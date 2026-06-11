@@ -1,161 +1,115 @@
-import {
-  Flame,
-  TrendingUp,
-  Zap,
-  BookOpen,
-} from 'lucide-react';
-import { leaderboard, currentUser } from '../../data/mockData';
+import { useState, useEffect } from 'react';
+import { Trophy, Medal, Zap, BookOpen, Flame, ArrowUp, ArrowDown, Crown } from 'lucide-react';
+import { leaderboardService } from '../../lib/supabase';
 import { useApp } from '../../contexts/AppContext';
+import type { LeaderboardEntry } from '../../types';
 
-export default function Leaderboard() {
-  const { t, theme } = useApp();
+export default function LeaderboardPage() {
+  const { t, theme, user } = useApp();
+  const [data, setData] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const isDark = theme === 'dark';
 
-  const top3 = leaderboard.slice(0, 3);
-  const userRank = leaderboard.findIndex(u => u.name === currentUser.name) + 1;
+  useEffect(() => {
+    leaderboardService.getLeaderboard().then(({ data: res }) => {
+      if (res) setData(res);
+      setLoading(false);
+    });
+  }, []);
 
-  const podiumOrder = [top3[1], top3[0], top3[2]];
-  const podiumHeights = ['h-28', 'h-36', 'h-24'];
-  const podiumColors = [
-    'from-slate-400 to-slate-500',
-    'from-amber-400 to-yellow-500',
-    'from-orange-400 to-amber-500',
-  ];
-  const podiumBg = [
-    isDark ? 'bg-slate-700' : 'bg-slate-100',
-    isDark ? 'bg-amber-900/30' : 'bg-amber-50',
-    isDark ? 'bg-orange-900/30' : 'bg-orange-50',
-  ];
-  const rankLabels = ['2nd', '1st', '3rd'];
+  const userRank = data.findIndex(u => u.name === (user?.fullName || ''));
+
+  const getRankIcon = (rank: number) => {
+    if (rank === 0) return <Crown className="h-5 w-5 text-amber-400" />;
+    if (rank === 1) return <Medal className="h-5 w-5 text-slate-400" />;
+    if (rank === 2) return <Medal className="h-5 w-5 text-amber-600" />;
+    return <span className="text-sm font-bold text-slate-400">#{rank + 1}</span>;
+  };
 
   return (
     <div className={`p-4 md:p-6 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
-      {/* Header */}
       <div className="mb-6">
-        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('leaderboard.title')}</h1>
-        <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          {t('leaderboard.subtitle')}
-        </p>
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('nav.leaderboard')}</h1>
+        <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('leaderboard.subtitle')}</p>
       </div>
 
-      {/* Your Position */}
-      <div className={`mb-6 rounded-2xl border p-5 ${
-        isDark 
-          ? 'border-primary-700 bg-gradient-to-r from-primary-900/30 to-accent-900/30' 
-          : 'border-primary-200 bg-gradient-to-r from-primary-50 to-accent-50'
-      }`}>
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-lg font-bold text-white">
-            {currentUser.name.split(' ').map(n => n[0]).join('')}
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{currentUser.name}</h3>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                isDark ? 'bg-primary-900/50 text-primary-400' : 'bg-primary-100 text-primary-700'
-              }`}>
-                #{userRank}
-              </span>
-            </div>
-            <div className={`mt-1 flex items-center gap-4 text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-              <span className="flex items-center gap-1">
-                <Zap className="h-4 w-4 text-amber-500" /> {currentUser.totalPoints.toLocaleString()} pts
-              </span>
-              <span className="flex items-center gap-1">
-                <BookOpen className="h-4 w-4 text-primary-500" /> {currentUser.coursesCompleted} {t('leaderboard.courses')}
-              </span>
-              <span className="flex items-center gap-1">
-                <Flame className="h-4 w-4 text-orange-500" /> {currentUser.streak} {t('common.days')}
-              </span>
-            </div>
-          </div>
-          <div className="hidden items-center gap-1 text-sm font-medium text-success-600 md:flex">
-            <TrendingUp className="h-4 w-4" /> +2 {t('leaderboard.places')}
-          </div>
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <div className={`h-8 w-8 animate-spin rounded-full border-2 border-t-transparent ${isDark ? 'border-slate-600' : 'border-slate-300'}`} />
         </div>
-      </div>
-
-      {/* Podium */}
-      <div className="mb-8 flex items-end justify-center gap-3 px-4">
-        {podiumOrder.map((user, i) => (
-          <div key={user.rank} className="flex flex-col items-center">
-            <div className="relative mb-2">
-              <div className={`flex h-16 w-16 items-center justify-center rounded-full text-xl font-bold ${podiumBg[i]} ${
-                i === 1 ? 'ring-4 ring-amber-300' : ''
-              } ${isDark ? 'text-white' : 'text-slate-700'}`}>
-                {user.name.split(' ').map(n => n[0]).join('')}
-              </div>
-              <span className={`absolute -bottom-1 -right-1 rounded-full px-1.5 py-0.5 text-xs font-bold shadow ${
-                isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-700'
-              }`}>
-                {rankLabels[i]}
-              </span>
-            </div>
-            <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{user.name.split(' ')[0]}</p>
-            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{user.points.toLocaleString()} pts</p>
-            <div className={`mt-2 w-24 rounded-t-xl bg-gradient-to-t ${podiumColors[i]} ${podiumHeights[i]} flex items-center justify-center`}>
-              <span className="text-2xl font-bold text-white">{user.rank}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Rest of leaderboard */}
-      <div className={`rounded-2xl border shadow-sm ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
-        <div className={`border-b px-5 py-3 ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
-          <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('leaderboard.fullRanking')}</h3>
+      ) : data.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Trophy className={`h-12 w-12 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                  <h3 className={`mt-4 text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('leaderboard.title')}</h3>
         </div>
-        <div className={`divide-y ${isDark ? 'divide-slate-700' : 'divide-slate-100'}`}>
-          {leaderboard.map((user) => {
-            const isCurrentUser = user.name === currentUser.name;
-            return (
-              <div
-                key={user.rank}
-                className={`flex items-center gap-4 px-5 py-3 transition-colors ${
-                  isCurrentUser 
-                    ? isDark ? 'bg-primary-900/20' : 'bg-primary-50' 
-                    : isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-50'
-                }`}
-              >
-                <span
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
-                    user.rank <= 3
-                      ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white'
-                      : isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
-                  }`}
-                >
-                  {user.rank}
-                </span>
-                <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${
-                    isCurrentUser
-                      ? 'bg-gradient-to-br from-primary-500 to-accent-500 text-white'
-                      : isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-200 text-slate-600'
-                  }`}
-                >
-                  {user.name.split(' ').map(n => n[0]).join('')}
+      ) : (
+        <>
+          {user && userRank >= 0 && (
+            <div className={`mb-6 overflow-hidden rounded-2xl border shadow-sm ${isDark ? 'border-primary-700 bg-gradient-to-br from-primary-900/40 to-slate-800' : 'border-primary-200 bg-gradient-to-br from-primary-50 to-white'}`}>
+              <div className="flex items-center gap-4 p-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-xl font-bold text-white ring-2 ring-white dark:ring-slate-800">
+                  {user.fullName.split(' ').map(n => n[0]).join('')}
                 </div>
                 <div className="flex-1">
-                  <p className={`text-sm font-medium ${
-                    isCurrentUser 
-                      ? isDark ? 'text-primary-400' : 'text-primary-700' 
-                      : isDark ? 'text-white' : 'text-slate-900'
-                  }`}>
-                    {user.name} {isCurrentUser && t('leaderboard.you')}
-                  </p>
-                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                    {user.courses} {t('leaderboard.courses')} - {user.streak} {t('leaderboard.dayStreak')}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{user.points.toLocaleString()}</p>
-                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('common.points')}</p>
+                  <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{user.fullName}</h3>
+                  <p className={`text-xs font-medium ${isDark ? 'text-primary-400' : 'text-primary-600'}`}>{t('leaderboard.yourPosition')} #{userRank + 1} / {data.length}</p>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
+              <div className={`flex border-t px-4 py-3 ${isDark ? 'border-primary-800' : 'border-primary-100'}`}>
+                <div className="flex flex-1 items-center gap-1.5 justify-center border-r dark:border-primary-800">
+                  <Zap className="h-4 w-4 text-amber-500" />
+                  <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{data[userRank].points.toLocaleString()} pts</span>
+                </div>
+                <div className="flex flex-1 items-center gap-1.5 justify-center border-r dark:border-primary-800">
+                  <BookOpen className="h-4 w-4 text-primary-500" />
+                  <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{data[userRank].coursesCompleted} {t('leaderboard.courses')}</span>
+                </div>
+                <div className="flex flex-1 items-center gap-1.5 justify-center">
+                  <Flame className="h-4 w-4 text-orange-500" />
+                  <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{data[userRank].streak} {t('common.days')}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid gap-2">
+            {data.map((userData, idx) => {
+              const isCurrentUser = userData.name === (user?.fullName || '');
+              const Icon = getRankIcon(idx);
+              return (
+                <div key={userData.id || idx} className={`group flex items-center gap-4 rounded-xl border px-4 py-3 transition-all ${isCurrentUser ? isDark ? 'border-primary-700 bg-primary-900/30' : 'border-primary-200 bg-primary-50' : isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                  <div className="flex h-10 w-10 items-center justify-center">{Icon}</div>
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-sm font-bold text-white ring-2 ${isCurrentUser ? 'ring-primary-400' : 'ring-transparent'}`}>
+                    {userData.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div className="flex-1">
+                    <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{userData.name}</p>
+                    {userData.title && <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{userData.title}</p>}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`flex items-center gap-1 rounded-lg px-2 py-1 ${isDark ? 'bg-amber-900/30' : 'bg-amber-50'}`}>
+                      <Zap className={`h-3.5 w-3.5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
+                      <span className={`text-xs font-bold ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>{userData.points.toLocaleString()}</span>
+                    </div>
+                    <div className={`rounded-lg px-2 py-1 ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                      <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{userData.coursesCompleted} {t('leaderboard.courses').toLowerCase()}</span>
+                    </div>
+                    <div className={`rounded-lg px-2 py-1 ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                      <span className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{userData.streak}d</span>
+                    </div>
+                    {userData.change !== undefined && userData.change !== 0 && (
+                      <div className={`flex items-center gap-0.5 ${userData.change > 0 ? 'text-success-500' : 'text-danger-500'}`}>
+                        {userData.change > 0 ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
+                        <span className="text-xs font-medium">{Math.abs(userData.change)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -1,33 +1,24 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { translations, TranslationKey, Language } from '../i18n/translations';
-import { supabase, isDemoMode } from '../lib/supabase';
+import { translations, Language } from '../i18n/translations';
+import { supabase, authService } from '../lib/supabase';
 
 type Theme = 'light' | 'dark';
 
-// Type utilisateur simplifie pour le mode demo
-interface DemoUser {
+interface AuthUser {
   id: string;
   email: string;
-  user_metadata: {
-    full_name: string;
-  };
+  fullName: string;
 }
 
 interface AppContextType {
-  // Theme
   theme: Theme;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
-
-  // Language
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
-
-  // Auth
-  user: DemoUser | null;
+  t: (key: string, params?: Record<string, string | number>) => string;
+  user: AuthUser | null;
   isLoading: boolean;
-  isDemo: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -35,12 +26,7 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-interface AppProviderProps {
-  children: ReactNode;
-}
-
-export function AppProvider({ children }: AppProviderProps) {
-  // Theme state
+export function AppProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('learnhub-theme');
@@ -50,208 +36,92 @@ export function AppProvider({ children }: AppProviderProps) {
     return 'light';
   });
 
-  // Language state
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('learnhub-language');
       if (saved === 'fr' || saved === 'en') return saved;
-      const browserLang = navigator.language.split('-')[0];
-      return browserLang === 'fr' ? 'fr' : 'en';
+      return navigator.language.startsWith('fr') ? 'fr' : 'en';
     }
     return 'fr';
   });
 
-  // Auth state
-  const [user, setUser] = useState<DemoUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Apply theme to document
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    root.classList.toggle('dark', theme === 'dark');
     localStorage.setItem('learnhub-theme', theme);
   }, [theme]);
 
-  // Save language preference
   useEffect(() => {
     localStorage.setItem('learnhub-language', language);
     document.documentElement.lang = language;
   }, [language]);
 
-  // Auth state listener
   useEffect(() => {
-    if (isDemoMode) {
-      // En mode demo, verifier si on a un utilisateur sauvegarde
-      const savedUser = localStorage.getItem('learnhub-demo-user');
-      if (savedUser) {
-        try {
-          setUser(JSON.parse(savedUser));
-        } catch {
-          setUser(null);
-        }
-      }
+    if (!supabase) {
       setIsLoading(false);
       return;
     }
 
-    // Mode Supabase reel
-    if (supabase) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            user_metadata: {
-              full_name: session.user.user_metadata?.full_name || 'Utilisateur',
-            },
-          });
-        } else {
-          setUser(null);
-        }
-        setIsLoading(false);
-      });
-
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            user_metadata: {
-              full_name: session.user.user_metadata?.full_name || 'Utilisateur',
-            },
-          });
-        } else {
-          setUser(null);
-        }
-        setIsLoading(false);
-      });
-
-      return () => subscription.unsubscribe();
-    } else {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          fullName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Utilisateur',
+        });
+      }
       setIsLoading(false);
-    }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? {
+        id: session.user.id,
+        email: session.user.email || '',
+        fullName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Utilisateur',
+      } : null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Theme functions
-  const setTheme = useCallback((newTheme: Theme) => {
-    setThemeState(newTheme);
-  }, []);
+  const setTheme = useCallback((t: Theme) => setThemeState(t), []);
+  const toggleTheme = useCallback(() => setThemeState(p => p === 'light' ? 'dark' : 'light'), []);
 
-  const toggleTheme = useCallback(() => {
-    setThemeState(prev => prev === 'light' ? 'dark' : 'light');
-  }, []);
+  const setLanguage = useCallback((l: Language) => setLanguageState(l), []);
 
-  // Language functions
-  const setLanguage = useCallback((lang: Language) => {
-    setLanguageState(lang);
-  }, []);
-
-  // Translation function
-  const t = useCallback((key: TranslationKey, params?: Record<string, string | number>): string => {
-    const translation = translations[key];
-    if (!translation) {
-      console.warn(`Translation missing for key: ${key}`);
-      return String(key);
-    }
-    
-    let text: string = translation[language];
-    
+  const t = useCallback((key: string, params?: Record<string, string | number>): string => {
+    const translation = (translations as any)[key];
+    if (!translation) return String(key);
+    let text = translation[language];
     if (params) {
-      Object.entries(params).forEach(([paramKey, value]) => {
-        text = text.replace(`{${paramKey}}`, String(value));
+      Object.entries(params).forEach(([k, v]) => {
+        text = text.replace(`{${k}}`, String(v));
       });
     }
-    
     return text;
   }, [language]);
 
-  // Auth functions
   const signIn = useCallback(async (email: string, password: string) => {
-    if (isDemoMode) {
-      // Mode demo - accepter n'importe quel email/password
-      const demoUser: DemoUser = {
-        id: 'demo-user-' + Date.now(),
-        email: email,
-        user_metadata: {
-          full_name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        },
-      };
-      setUser(demoUser);
-      localStorage.setItem('learnhub-demo-user', JSON.stringify(demoUser));
-      return { error: null };
-    }
-
-    if (!supabase) {
-      return { error: { message: 'Supabase non configure' } };
-    }
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await authService.signIn(email, password);
     return { error };
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-    if (isDemoMode) {
-      // Mode demo - creer un utilisateur fictif
-      const demoUser: DemoUser = {
-        id: 'demo-user-' + Date.now(),
-        email: email,
-        user_metadata: {
-          full_name: fullName,
-        },
-      };
-      setUser(demoUser);
-      localStorage.setItem('learnhub-demo-user', JSON.stringify(demoUser));
-      return { error: null };
-    }
-
-    if (!supabase) {
-      return { error: { message: 'Supabase non configure' } };
-    }
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-      },
-    });
+    const { error } = await authService.signUp(email, password, fullName);
     return { error };
   }, []);
 
   const signOut = useCallback(async () => {
-    if (isDemoMode) {
-      setUser(null);
-      localStorage.removeItem('learnhub-demo-user');
-      return;
-    }
-
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
+    await authService.signOut();
     setUser(null);
   }, []);
 
-  const value: AppContextType = {
-    theme,
-    setTheme,
-    toggleTheme,
-    language,
-    setLanguage,
-    t,
-    user,
-    isLoading,
-    isDemo: isDemoMode,
-    signIn,
-    signUp,
-    signOut,
-  };
-
   return (
-    <AppContext.Provider value={value}>
+    <AppContext.Provider value={{ theme, setTheme, toggleTheme, language, setLanguage, t, user, isLoading, signIn, signUp, signOut }}>
       {children}
     </AppContext.Provider>
   );
@@ -259,13 +129,10 @@ export function AppProvider({ children }: AppProviderProps) {
 
 export function useApp() {
   const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
+  if (!context) throw new Error('useApp must be used within AppProvider');
   return context;
 }
 
-// Convenience hooks
 export function useTheme() {
   const { theme, setTheme, toggleTheme } = useApp();
   return { theme, setTheme, toggleTheme };
@@ -277,6 +144,6 @@ export function useLanguage() {
 }
 
 export function useAuth() {
-  const { user, isLoading, isDemo, signIn, signUp, signOut } = useApp();
-  return { user, isLoading, isDemo, signIn, signUp, signOut };
+  const { user, isLoading, signIn, signUp, signOut } = useApp();
+  return { user, isLoading, signIn, signUp, signOut };
 }

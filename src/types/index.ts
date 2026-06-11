@@ -118,6 +118,16 @@ export interface ForumPost {
   likes: number;
 }
 
+export interface LeaderboardEntry {
+  id: string;
+  name: string;
+  points: number;
+  streak: number;
+  coursesCompleted: number;
+  title?: string;
+  change?: number;
+}
+
 export type Page = 
   | 'dashboard' 
   | 'catalog' 

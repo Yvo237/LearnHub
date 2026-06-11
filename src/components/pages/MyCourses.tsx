@@ -1,227 +1,141 @@
-import {
-  BookOpen,
-  Clock,
-  ArrowRight,
-  CheckCircle2,
-  Play,
-} from 'lucide-react';
-import { useState } from 'react';
-import { courses } from '../../data/mockData';
-import { Page } from '../../types';
+import { useState, useEffect } from 'react';
+import { BookOpen, Clock, TrendingUp, Star, PlayCircle } from 'lucide-react';
+import { courseService } from '../../lib/supabase';
+import { useAppStore } from '../../store/useStore';
 import { useApp } from '../../contexts/AppContext';
+import type { Course, Page } from '../../types';
 
 interface MyCoursesProps {
-  onNavigate: (page: Page, courseId?: string) => void;
+  onNavigate?: (page: Page, courseId?: string) => void;
 }
 
 export default function MyCourses({ onNavigate }: MyCoursesProps) {
-  const { t, theme } = useApp();
+  const { navigate } = useAppStore();
+  const { t, theme, user } = useApp();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
   const isDark = theme === 'dark';
 
-  const [filter, setFilter] = useState<'all' | 'in-progress' | 'completed'>('all');
+  const nav = onNavigate || navigate;
 
-  const enrolledCourses = courses.filter(c => c.isEnrolled);
-  const filteredCourses = enrolledCourses.filter(c => {
-    if (filter === 'in-progress') return (c.progress || 0) < 100;
-    if (filter === 'completed') return (c.progress || 0) >= 90;
-    return true;
-  });
+  useEffect(() => {
+    if (!user) return;
+    setLoading(true);
+    courseService.getEnrolledCourses(user.id).then(({ data }: any) => {
+      if (data) {
+        const mapped: Course[] = data.map((e: any) => ({
+          ...e.course,
+          isEnrolled: true,
+          progress: e.progress || 0,
+          lastAccessed: e.last_accessed_at,
+          status: e.progress >= 100 ? 'completed' : 'in-progress',
+        }));
+        setCourses(mapped);
+      }
+      setLoading(false);
+    });
+  }, [user]);
 
-  const totalProgress = enrolledCourses.length > 0
-    ? Math.round(enrolledCourses.reduce((s, c) => s + (c.progress || 0), 0) / enrolledCourses.length)
-    : 0;
+  const filteredCourses = filter === 'all' ? courses : courses.filter((c: any) => c.status === filter);
 
-  const filters = [
-    { id: 'all' as const, label: t('catalog.all'), count: enrolledCourses.length },
-    { id: 'in-progress' as const, label: t('myCourses.inProgress'), count: enrolledCourses.filter(c => (c.progress || 0) < 100).length },
-    { id: 'completed' as const, label: t('myCourses.completed'), count: enrolledCourses.filter(c => (c.progress || 0) >= 90).length },
-  ];
-
-  const courseColors = [
-    'from-blue-500 to-cyan-500',
-    'from-purple-500 to-pink-500',
-    'from-orange-500 to-red-500',
-    'from-emerald-500 to-teal-500',
+  const stats = [
+    { label: t('myCourses.inProgress'), value: courses.filter((c: any) => c.status === 'in-progress').length, icon: Clock, color: isDark ? 'text-accent-400' : 'text-accent-600', bg: isDark ? 'bg-accent-900/30' : 'bg-accent-50' },
+    { label: t('myCourses.completed'), value: courses.filter((c: any) => c.status === 'completed').length, icon: TrendingUp, color: isDark ? 'text-success-400' : 'text-success-600', bg: isDark ? 'bg-success-900/30' : 'bg-success-50' },
+    { label: t('myCourses.total'), value: courses.length, icon: BookOpen, color: isDark ? 'text-primary-400' : 'text-primary-600', bg: isDark ? 'bg-primary-900/30' : 'bg-primary-50' },
   ];
 
   return (
     <div className={`p-4 md:p-6 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
-      {/* Header */}
       <div className="mb-6">
-        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('myCourses.title')}</h1>
-        <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          {t('myCourses.subtitle')}
-        </p>
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('nav.myCourses')}</h1>
+        <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('myCourses.subtitle')}</p>
       </div>
 
-      {/* Overall Progress */}
-      <div className={`mb-6 rounded-2xl border p-5 ${
-        isDark 
-          ? 'border-slate-700 bg-gradient-to-r from-primary-900/30 to-accent-900/30' 
-          : 'border-slate-200 bg-gradient-to-r from-primary-50 to-accent-50'
-      }`}>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h3 className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-              {t('myCourses.overallProgress')}
-            </h3>
-            <p className={`mt-1 text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{totalProgress}%</p>
-          </div>
-          <div className="flex gap-6">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">{enrolledCourses.length}</p>
-              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('myCourses.enrolled')}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-success-600">
-                {enrolledCourses.filter(c => (c.progress || 0) >= 90).length}
-              </p>
-              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('myCourses.completed')}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-warning-600">
-                {enrolledCourses.reduce((s, c) => {
-                  return s + c.modules.reduce((ms, m) => ms + m.lessons.filter(l => l.isCompleted).length, 0);
-                }, 0)}
-              </p>
-              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('myCourses.lessonsDone')}</p>
-            </div>
-          </div>
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <div className={`h-8 w-8 animate-spin rounded-full border-2 border-t-transparent ${isDark ? 'border-slate-600' : 'border-slate-300'}`} />
         </div>
-        <div className={`mt-4 h-3 overflow-hidden rounded-full ${isDark ? 'bg-slate-700' : 'bg-white/70'}`}>
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-primary-500 to-accent-500 transition-all"
-            style={{ width: `${totalProgress}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="mb-6 flex gap-2">
-        {filters.map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setFilter(f.id)}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
-              filter === f.id
-                ? 'bg-primary-600 text-white shadow-md shadow-primary-500/25'
-                : isDark
-                ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {f.label}
-            <span
-              className={`rounded-full px-1.5 py-0.5 text-xs ${
-                filter === f.id 
-                  ? 'bg-white/20' 
-                  : isDark ? 'bg-slate-700' : 'bg-slate-200'
-              }`}
-            >
-              {f.count}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* Course List */}
-      <div className="space-y-4">
-        {filteredCourses.map((course, idx) => {
-          const totalL = course.modules.reduce((s, m) => s + m.lessons.length, 0);
-          const completedL = course.modules.reduce(
-            (s, m) => s + m.lessons.filter(l => l.isCompleted).length, 0
-          );
-          const nextLesson = course.modules
-            .flatMap(m => m.lessons)
-            .find(l => !l.isCompleted && !l.isLocked);
-
-          return (
-            <div
-              key={course.id}
-              className={`overflow-hidden rounded-2xl border shadow-sm transition-all hover:shadow-md ${
-                isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
-              }`}
-            >
-              <div className="flex flex-col md:flex-row">
-                {/* Color Bar */}
-                <div className={`h-2 bg-gradient-to-r ${courseColors[idx % courseColors.length]} md:h-auto md:w-2`} />
-
-                <div className="flex flex-1 flex-col gap-4 p-5 md:flex-row md:items-center">
-                  {/* Course Icon */}
-                  <div className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${courseColors[idx % courseColors.length]} text-white`}>
-                    <BookOpen className="h-6 w-6" />
+      ) : (
+        <>
+          <div className="mb-6 grid grid-cols-3 gap-4">
+            {stats.map((stat, idx) => {
+              const Icon = stat.icon;
+              return (
+                <div key={idx} className={`rounded-2xl border p-4 shadow-sm ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.bg}`}>
+                    <Icon className={`h-5 w-5 ${stat.color}`} />
                   </div>
-
-                  {/* Info */}
-                  <div className="min-w-0 flex-1">
-                    <h3 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{course.title}</h3>
-                    <p className={`mt-0.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{course.instructor}</p>
-                    <div className={`mt-2 flex flex-wrap items-center gap-3 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="h-3.5 w-3.5" /> {completedL}/{totalL} {t('common.lessons')}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5" /> {course.duration}
-                      </span>
-                      {nextLesson && (
-                        <span className="flex items-center gap-1 text-primary-600 dark:text-primary-400">
-                          <Play className="h-3.5 w-3.5" /> {t('myCourses.nextLesson')} {nextLesson.title}
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-3 flex items-center gap-3">
-                      <div className={`h-2 flex-1 overflow-hidden rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}>
-                        <div
-                          className={`h-full rounded-full transition-all ${
-                            (course.progress || 0) >= 90
-                              ? 'bg-gradient-to-r from-success-500 to-emerald-400'
-                              : 'bg-gradient-to-r from-primary-500 to-accent-500'
-                          }`}
-                          style={{ width: `${course.progress || 0}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-bold text-primary-600 dark:text-primary-400">{course.progress || 0}%</span>
-                    </div>
-                  </div>
-
-                  {/* Action */}
-                  <button
-                    onClick={() => onNavigate('course-detail', course.id)}
-                    className="flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-medium text-white shadow-md shadow-primary-500/25 transition-all hover:bg-primary-700"
-                  >
-                    {(course.progress || 0) >= 90 ? (
-                      <>
-                        <CheckCircle2 className="h-4 w-4" /> {t('myCourses.review')}
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4" /> {t('myCourses.continue')}
-                      </>
-                    )}
-                  </button>
+                  <p className={`mt-3 text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
+                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{stat.label}</p>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
 
-      {filteredCourses.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20">
-          <BookOpen className={`h-12 w-12 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-          <h3 className={`mt-4 text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            {t('myCourses.noCourses')}
-          </h3>
-          <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            {filter === 'all' ? t('myCourses.enrollFirst') : t('catalog.tryDifferentFilters')}
-          </p>
-          <button
-            onClick={() => onNavigate('catalog')}
-            className="mt-4 flex items-center gap-2 rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-700"
-          >
-            {t('myCourses.exploreCatalog')} <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
+          <div className="mb-6 flex gap-2">
+            {['all', 'in-progress', 'completed'].map(f => (
+              <button key={f} onClick={() => setFilter(f)}
+                className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${filter === f ? 'bg-primary-600 text-white' : isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>
+                {f === 'all' ? t('common.all') : f === 'in-progress' ? t('myCourses.inProgress') : t('myCourses.completed')}
+              </button>
+            ))}
+          </div>
+
+          {filteredCourses.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <BookOpen className={`h-12 w-12 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+              <h3 className={`mt-4 text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('myCourses.empty')}</h3>
+              <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('myCourses.emptyDesc')}</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredCourses.map((course: any) => (
+                <div key={course.id} onClick={() => nav('course-detail', course.id)} className={`group cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all hover:shadow-lg ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
+                  <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-primary-500 to-accent-600">
+                    <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <div className={`mb-1.5 inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold text-white ${course.status === 'in-progress' ? 'bg-accent-500/90' : course.status === 'completed' ? 'bg-success-500/90' : 'bg-primary-500/90'}`}>
+                        <PlayCircle className="h-3 w-3" />
+                        {course.status === 'in-progress' ? t('myCourses.continue') : course.status === 'completed' ? t('myCourses.completed') : t('myCourses.enrolled')}
+                      </div>
+                      <h3 className="text-sm font-bold text-white line-clamp-2">{course.title}</h3>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{course.instructor}</span>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3.5 w-3.5 text-amber-400" fill="currentColor" />
+                        <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{course.rating}</span>
+                      </div>
+                    </div>
+                    {course.progress !== undefined && (
+                      <div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>{t('course.progress')}</span>
+                          <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{course.progress}%</span>
+                        </div>
+                        <div className={`mt-1 h-1.5 overflow-hidden rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                          <div className="h-full rounded-full bg-gradient-to-r from-primary-500 to-accent-500" style={{ width: `${course.progress}%` }} />
+                        </div>
+                      </div>
+                    )}
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className={`flex items-center gap-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        <Clock className="h-3 w-3" /> {course.duration}
+                      </span>
+                      <span className={`flex items-center gap-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        <BookOpen className="h-3 w-3" /> {course.totalLessons} {t('course.lessons')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
