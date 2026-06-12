@@ -3,6 +3,7 @@ import { ArrowLeft, Play, FileText, HelpCircle, Code, Lock, CheckCircle2, Clock,
 import { courseService, forumService } from '../../lib/supabase';
 import { useAppStore } from '../../store/useStore';
 import { useApp } from '../../contexts/AppContext';
+import { getCourseImage } from '../../utils/images';
 import type { Course, ForumPost, Page } from '../../types';
 
 interface CourseDetailProps {
@@ -65,13 +66,11 @@ export default function CourseDetail({ courseId, onNavigate }: CourseDetailProps
     prev.includes(moduleId) ? prev.filter(id => id !== moduleId) : [...prev, moduleId]
   );
 
-  const colors = ['from-blue-500 to-cyan-500', 'from-purple-500 to-pink-500', 'from-orange-500 to-red-500', 'from-emerald-500 to-teal-500', 'from-indigo-500 to-violet-500'];
-  const colorIdx = parseInt(course.id.replace(/[^\d]/g, '') || '0') % colors.length;
-
   return (
     <div className={`min-h-screen ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
-      <div className={`relative bg-gradient-to-br ${colors[colorIdx]} px-4 py-6 text-white md:px-6 md:py-10`}>
-        <div className="absolute inset-0 bg-black/20" />
+      <div className={`relative px-4 py-6 text-white md:px-6 md:py-10`}>
+        <img src={getCourseImage(course)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-black/70" />
         <div className="relative">
           <button onClick={() => nav(course.isEnrolled ? 'my-courses' : 'catalog')}
             className="mb-4 flex items-center gap-2 rounded-lg bg-white/20 px-3 py-1.5 text-sm font-medium backdrop-blur-sm hover:bg-white/30">

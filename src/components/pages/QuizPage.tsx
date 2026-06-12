@@ -25,7 +25,7 @@ export default function QuizPage({ onNavigate }: QuizPageProps) {
   useEffect(() => {
     if (!courseId) return;
     setLoading(true);
-    quizService.getQuiz(courseId).then(({ data }) => {
+    quizService.getQuizByCourse(courseId).then(({ data }) => {
       if (data) {
         setQuiz(data);
         if (data.timeLimit) setTimeLeft(data.timeLimit * 60);
@@ -110,7 +110,7 @@ export default function QuizPage({ onNavigate }: QuizPageProps) {
                       <div>
                         <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{q.text}</p>
                         <p className={`mt-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                          {t('quiz.restart')}: {answers[idx] || '—'} | {t('quiz.restart')}: {q.correctAnswer}
+                          {t('quiz.yourAnswer')}: {answers[idx] || '—'} | {t('quiz.correctAnswer')}: {q.correctAnswer}
                         </p>
                       </div>
                     </div>

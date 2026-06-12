@@ -3,7 +3,8 @@ import { BookOpen, Clock, Award, TrendingUp, Play, ArrowRight, Flame, Target, Ba
 import { courseService, calendarService } from '../../lib/supabase';
 import { useAppStore } from '../../store/useStore';
 import { useApp } from '../../contexts/AppContext';
-import type { CalendarEvent, Page } from '../../types';
+import { getRandomHero, getCourseImage } from '../../utils/images';
+import type { CalendarEvent, Course, Page } from '../../types';
 
 interface DashboardProps {
   onNavigate: (page: Page, courseId?: string) => void;
@@ -13,7 +14,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const { t, theme, user } = useApp();
   const { navigate } = useAppStore();
   const nav = onNavigate || navigate;
-  const [courses, setCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const isDark = theme === 'dark';
@@ -23,8 +24,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     Promise.all([
       courseService.getEnrolledCourses(user.id),
       calendarService.getUserEvents(user.id).catch(() => ({ data: [] })),
-    ]).then(([coursesRes, eventsRes]: any[]) => {
-      const enrolled = (coursesRes.data || []).map((e: any) => ({
+    ]).then(([coursesRes, eventsRes]: any) => {
+      const enrolled: Course[] = (coursesRes.data || []).map((e: any) => ({
         ...e.course,
         isEnrolled: true,
         progress: e.progress || 0,
@@ -53,7 +54,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
   return (
     <div className={`space-y-6 p-4 md:p-6 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary-600 via-primary-700 to-accent-700 p-6 text-white md:p-8">
+      <div className="relative overflow-hidden rounded-2xl p-6 text-white md:p-8">
+        <img src={getRandomHero(1)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-900/85 via-primary-800/80 to-accent-900/85" />
         <div className="relative z-10">
           <div className="flex items-center gap-2 text-primary-200">
             <Flame className="h-5 w-5 text-orange-300" />
@@ -65,7 +68,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           <p className="mt-2 max-w-lg text-sm text-primary-100 md:text-base">
             {t('dashboard.completedLessons', { count: completedLessons })}
           </p>
-          <button onClick={() => { const last = courses.sort((a, b) => (b.lastAccessed || '').localeCompare(a.lastAccessed || ''))[0]; if (last) nav('course-detail', last.id); }}
+          <button onClick={() => { const last = [...courses].sort((a, b) => (b.lastAccessed || '').localeCompare(a.lastAccessed || ''))[0]; if (last) nav('course-detail', last.id); }}
             className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/20 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/30">
             <Play className="h-4 w-4" /> {t('dashboard.resumeCourse')}
           </button>
@@ -114,12 +117,12 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t('dashboard.noCourses')}</p>
                     <button onClick={() => nav('catalog')} className="mt-3 rounded-xl bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700">{t('catalog.browseCourses')}</button>
                   </div>
-                ) : courses.map((course: any) => {
+                ) : courses.map((course: Course) => {
                   return (
                     <button key={course.id} onClick={() => nav('course-detail', course.id)}
                       className={`flex w-full items-center gap-4 rounded-2xl border p-4 text-left shadow-sm transition-all hover:shadow-md ${isDark ? 'border-slate-700 bg-slate-800 hover:border-primary-600' : 'border-slate-200 bg-white hover:border-primary-200'}`}>
-                      <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-100 to-accent-100 dark:from-primary-900/50 dark:to-accent-900/50">
-                        <BookOpen className={`h-6 w-6 ${isDark ? 'text-primary-400' : 'text-primary-600'}`} />
+                      <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl">
+                        <img src={getCourseImage(course)} alt="" className="h-full w-full object-cover" loading="lazy" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className={`truncate text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{course.title}</h3>

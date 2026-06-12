@@ -15,6 +15,7 @@ import Forum from './components/pages/Forum';
 import Leaderboard from './components/pages/Leaderboard';
 import Profile from './components/pages/Profile';
 import Settings from './components/pages/Settings';
+import AdminPage from './components/pages/AdminPage';
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -74,6 +75,8 @@ export default function App() {
         return <Leaderboard />;
       case 'profile':
         return <Profile onNavigate={navigate} />;
+      case 'admin':
+        return <AdminPage onNavigate={navigate} />;
       case 'settings':
         return <Settings />;
       default:

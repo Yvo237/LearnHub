@@ -20,8 +20,8 @@ export default function CalendarPage() {
     });
   }, [user, currentMonth]);
 
-  const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-  const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  const monthKeys = ['month.january', 'month.february', 'month.march', 'month.april', 'month.may', 'month.june', 'month.july', 'month.august', 'month.september', 'month.october', 'month.november', 'month.december'] as const;
+  const dayKeys = ['day.mon', 'day.tue', 'day.wed', 'day.thu', 'day.fri', 'day.sat', 'day.sun'] as const;
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
@@ -55,15 +55,15 @@ export default function CalendarPage() {
               <button onClick={prevMonth} className={`rounded-lg p-2 transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}>
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{monthNames[month]} {year}</h2>
+              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{t(monthKeys[month])} {year}</h2>
               <button onClick={nextMonth} className={`rounded-lg p-2 transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}>
                 <ChevronRight className="h-5 w-5" />
               </button>
             </div>
             <div className="p-4">
               <div className="mb-2 grid grid-cols-7">
-                {dayNames.map(day => (
-                  <div key={day} className="p-2 text-center text-xs font-medium text-slate-500">{day}</div>
+                {dayKeys.map(key => (
+                  <div key={key} className="p-2 text-center text-xs font-medium text-slate-500">{t(key)}</div>
                 ))}
               </div>
               <div className="grid grid-cols-7">

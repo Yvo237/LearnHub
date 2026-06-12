@@ -109,10 +109,8 @@ async function getAllCoursesFn(userId?: string) {
   return { data: (data || []).map(c => toCourse(c, userId)), error };
 }
 
-function getCatEmoji(name: string): string {
-  const map: Record<string, string> = { développement: '💻', design: '🎨', marketing: '📊', business: '💼', musique: '🎵', langues: '🌍' };
-  for (const [k, v] of Object.entries(map)) if (name.toLowerCase().includes(k)) return v;
-  return '📚';
+function getCatEmoji(_name: string): string {
+  return '';
 }
 
 export const courseService = {
@@ -196,9 +194,9 @@ export const lessonService = {
 // ─── Quizzes ───────────────────────────────────────────
 
 export const quizService = {
-  async getQuiz(quizId: string) {
+  async getQuizByCourse(courseId: string) {
     if (!supabase) return { data: null, error: new Error('Supabase non configuré') };
-    return supabase.from('quizzes').select('*, questions(*)').eq('id', quizId).single();
+    return supabase.from('quizzes').select('*, questions(*)').eq('course_id', courseId).single();
   },
 
   async submitAttempt(userId: string, quizId: string, answers: Record<string, number>, score: number) {
@@ -304,6 +302,53 @@ export const notificationService = {
   async markAsRead(notificationId: string) {
     if (!supabase) return { data: null, error: new Error('Supabase non configuré') };
     return supabase.from('notifications').update({ is_read: true }).eq('id', notificationId).select().single();
+  },
+};
+
+export const adminService = {
+  async getAllCourses() {
+    if (!supabase) return { data: [], error: new Error('Supabase non configure') };
+    const { data, error } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
+  },
+
+  async upsertCourse(course: any) {
+    if (!supabase) return { data: null, error: new Error('Supabase non configure') };
+    const { data, error } = await supabase.from('courses').upsert(course).select().single();
+    return { data, error };
+  },
+
+  async deleteCourse(id: string) {
+    if (!supabase) return { error: new Error('Supabase non configure') };
+    return supabase.from('courses').delete().eq('id', id);
+  },
+
+  async getAllUsers() {
+    if (!supabase) return { data: [], error: new Error('Supabase non configure') };
+    const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
+  },
+
+  async updateUserRole(userId: string, role: string) {
+    if (!supabase) return { data: null, error: new Error('Supabase non configure') };
+    return supabase.from('profiles').update({ role }).eq('id', userId).select().single();
+  },
+
+  async getStats() {
+    if (!supabase) return { data: null, error: new Error('Supabase non configure') };
+    const [coursesRes, usersRes, enrollmentsRes] = await Promise.all([
+      supabase.from('courses').select('id', { count: 'exact', head: true }),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('enrollments').select('id', { count: 'exact', head: true }),
+    ]);
+    return {
+      data: {
+        totalCourses: coursesRes.count || 0,
+        totalUsers: usersRes.count || 0,
+        totalEnrollments: enrollmentsRes.count || 0,
+      },
+      error: null,
+    };
   },
 };
 

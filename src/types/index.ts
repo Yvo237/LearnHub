@@ -41,6 +41,7 @@ export interface Course {
   isEnrolled?: boolean;
   progress?: number;
   lastAccessed?: string;
+  status?: 'in-progress' | 'completed';
 }
 
 export interface Module {
@@ -140,4 +141,5 @@ export type Page =
   | 'profile' 
   | 'settings'
   | 'forum'
-  | 'leaderboard';
+  | 'leaderboard'
+  | 'admin';

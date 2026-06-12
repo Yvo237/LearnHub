@@ -3,6 +3,7 @@ import { Mail, Calendar, BookOpen, Award, Zap, Flame, MapPin, Edit3, ExternalLin
 import { courseService, certificateService } from '../../lib/supabase';
 import { useAppStore } from '../../store/useStore';
 import { useApp } from '../../contexts/AppContext';
+import { getProfileCover, getAvatarUrl } from '../../utils/images';
 import type { Certificate, Page } from '../../types';
 
 interface ProfileProps {
@@ -50,11 +51,14 @@ export default function Profile({ onNavigate }: ProfileProps) {
   return (
     <div className={`p-4 md:p-6 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
       <div className={`relative overflow-hidden rounded-2xl border shadow-sm ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
-        <div className="h-32 bg-gradient-to-r from-primary-600 via-accent-600 to-primary-700" />
+        <div className="relative h-32 overflow-hidden">
+          <img src={getProfileCover(user?.id)} alt="" className="h-full w-full object-cover" loading="lazy" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+        </div>
         <div className="px-6 pb-6">
           <div className="flex flex-col items-start gap-4 md:flex-row md:items-end">
-            <div className="-mt-12 flex h-24 w-24 items-center justify-center rounded-2xl border-4 bg-gradient-to-br from-primary-500 to-accent-500 text-2xl font-bold text-white shadow-lg border-white dark:border-slate-800">
-              {(user?.fullName || 'U').split(' ').map(n => n[0]).join('')}
+            <div className="-mt-12 h-24 w-24 overflow-hidden rounded-2xl border-4 shadow-lg border-white dark:border-slate-800">
+              <img src={getAvatarUrl(user?.fullName)} alt="" className="h-full w-full object-cover" loading="lazy" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">

@@ -3,6 +3,7 @@ import { BookOpen, Clock, TrendingUp, Star, PlayCircle } from 'lucide-react';
 import { courseService } from '../../lib/supabase';
 import { useAppStore } from '../../store/useStore';
 import { useApp } from '../../contexts/AppContext';
+import { getCourseImage } from '../../utils/images';
 import type { Course, Page } from '../../types';
 
 interface MyCoursesProps {
@@ -92,8 +93,8 @@ export default function MyCourses({ onNavigate }: MyCoursesProps) {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredCourses.map((course: any) => (
                 <div key={course.id} onClick={() => nav('course-detail', course.id)} className={`group cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all hover:shadow-lg ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
-                  <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-primary-500 to-accent-600">
-                    <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                  <div className="relative aspect-video overflow-hidden">
+                    <img src={getCourseImage(course)} alt={course.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <div className="absolute bottom-3 left-3 right-3">
                       <div className={`mb-1.5 inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold text-white ${course.status === 'in-progress' ? 'bg-accent-500/90' : course.status === 'completed' ? 'bg-success-500/90' : 'bg-primary-500/90'}`}>

@@ -3,6 +3,7 @@ import { BookOpen, Clock, Star, Users, Search, ChevronRight } from 'lucide-react
 import { courseService } from '../../lib/supabase';
 import { useAppStore } from '../../store/useStore';
 import { useApp } from '../../contexts/AppContext';
+import { getCourseImage, getCategoryImageUrl } from '../../utils/images';
 import type { Course, Page } from '../../types';
 
 interface Category {
@@ -56,8 +57,6 @@ export default function Catalog({ onNavigate, searchQuery: propSearch }: Catalog
     return true;
   });
 
-  const catColors = ['from-amber-400 to-orange-500', 'from-blue-500 to-indigo-600', 'from-emerald-500 to-teal-600', 'from-purple-500 to-pink-600'];
-
   return (
     <div className={`p-4 md:p-6 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
       <div className="mb-6">
@@ -82,11 +81,18 @@ export default function Catalog({ onNavigate, searchQuery: propSearch }: Catalog
           <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
             {categories.slice(0, 4).map((cat, idx) => (
               <button key={cat.id} onClick={() => setActiveCategory(cat.id === activeCategory ? 'all' : cat.id)}
-                className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition-all hover:shadow-md ${activeCategory === cat.id ? 'border-primary-500 ring-2 ring-primary-500/30' : isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
-                <div className={`absolute right-0 top-0 h-16 w-16 translate-x-4 -translate-y-4 rounded-full bg-gradient-to-br ${catColors[idx]} opacity-20`} />
-                <p className={`text-2xl ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{cat.icon}</p>
-                <h3 className={`mt-2 text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{cat.name}</h3>
-                <p className={`mt-0.5 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{cat.count} {t('catalog.courses')}</p>
+                className={`group relative overflow-hidden rounded-2xl border text-left transition-all hover:shadow-md ${activeCategory === cat.id ? 'border-primary-500 ring-2 ring-primary-500/30' : isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
+                <div className="relative aspect-video overflow-hidden">
+                  <img src={getCategoryImageUrl(cat.name)} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-2 left-3">
+                    <span className="rounded-lg bg-white/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">{cat.name.slice(0, 3)}</span>
+                  </div>
+                </div>
+                <div className="p-3">
+                  <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{cat.name}</h3>
+                  <p className={`mt-0.5 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{cat.count} {t('catalog.courses')}</p>
+                </div>
               </button>
             ))}
           </div>
@@ -102,7 +108,7 @@ export default function Catalog({ onNavigate, searchQuery: propSearch }: Catalog
               {filteredCourses.map(course => (
                 <div key={course.id} onClick={() => nav('course-detail', course.id)} className={`group cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all hover:shadow-lg ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
                   <div className="relative aspect-video overflow-hidden">
-                    <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                    <img src={getCourseImage(course)} alt={course.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <div className="absolute bottom-3 left-3 right-3">
                       <span className="inline-block rounded-lg bg-white/20 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">{course.level}</span>
@@ -149,7 +155,7 @@ export default function Catalog({ onNavigate, searchQuery: propSearch }: Catalog
                 {categories.map(cat => (
                   <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
                     className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-all ${activeCategory === cat.id ? 'bg-primary-600 text-white' : isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                    {cat.icon} {cat.name}
+                    {cat.name}
                   </button>
                 ))}
               </div>

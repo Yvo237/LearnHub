@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import {
-  GraduationCap, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, AlertCircle,
+  Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, AlertCircle,
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
+import { getRandomHero } from '../../utils/images';
 
 export default function AuthPage() {
   const { t, theme, signIn, signUp } = useApp();
@@ -12,6 +13,7 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: '', password: '', fullName: '', confirmPassword: '' });
+  const [heroImg] = useState(() => getRandomHero(0));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,15 +38,12 @@ export default function AuthPage() {
 
   return (
     <div className={`flex min-h-screen ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
-      <div className="hidden lg:flex lg:w-1/2 xl:w-2/5 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-700 p-12 flex-col justify-between relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/10" />
+      <div className="hidden lg:flex lg:w-1/2 xl:w-2/5 p-12 flex-col justify-between relative overflow-hidden">
+        <img src={heroImg} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-900/85 via-primary-800/80 to-accent-900/85" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
-              <GraduationCap className="h-7 w-7 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white">LearnHub</span>
-          </div>
+          <img src="/images/logo-white.svg" alt="LearnHub" className="h-10" />
         </div>
         <div className="relative z-10 space-y-6">
           <h1 className="text-4xl font-bold text-white leading-tight">Développez vos compétences avec les meilleurs cours en ligne</h1>
@@ -62,11 +61,8 @@ export default function AuthPage() {
 
       <div className={`flex flex-1 items-center justify-center p-6 lg:p-12 ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
         <div className="w-full max-w-md">
-          <div className="flex items-center justify-center gap-3 lg:hidden mb-8">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary-600 to-accent-600">
-              <GraduationCap className="h-7 w-7 text-white" />
-            </div>
-            <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>LearnHub</span>
+          <div className="flex items-center justify-center lg:hidden mb-8">
+            <img src="/images/logo.svg" alt="LearnHub" className="h-10" />
           </div>
 
           <div className="text-center mb-8">

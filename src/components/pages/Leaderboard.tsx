@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Trophy, Medal, Zap, BookOpen, Flame, ArrowUp, ArrowDown, Crown } from 'lucide-react';
 import { leaderboardService } from '../../lib/supabase';
 import { useApp } from '../../contexts/AppContext';
+import { getAvatarUrl } from '../../utils/images';
 import type { LeaderboardEntry } from '../../types';
 
 export default function LeaderboardPage() {
@@ -47,8 +48,8 @@ export default function LeaderboardPage() {
           {user && userRank >= 0 && (
             <div className={`mb-6 overflow-hidden rounded-2xl border shadow-sm ${isDark ? 'border-primary-700 bg-gradient-to-br from-primary-900/40 to-slate-800' : 'border-primary-200 bg-gradient-to-br from-primary-50 to-white'}`}>
               <div className="flex items-center gap-4 p-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-xl font-bold text-white ring-2 ring-white dark:ring-slate-800">
-                  {user.fullName.split(' ').map(n => n[0]).join('')}
+                <div className="h-14 w-14 overflow-hidden rounded-full ring-2 ring-white dark:ring-slate-800">
+                  <img src={getAvatarUrl(user.fullName, 112)} alt="" className="h-full w-full object-cover" loading="lazy" />
                 </div>
                 <div className="flex-1">
                   <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{user.fullName}</h3>
@@ -79,8 +80,8 @@ export default function LeaderboardPage() {
               return (
                 <div key={userData.id || idx} className={`group flex items-center gap-4 rounded-xl border px-4 py-3 transition-all ${isCurrentUser ? isDark ? 'border-primary-700 bg-primary-900/30' : 'border-primary-200 bg-primary-50' : isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
                   <div className="flex h-10 w-10 items-center justify-center">{Icon}</div>
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-sm font-bold text-white ring-2 ${isCurrentUser ? 'ring-primary-400' : 'ring-transparent'}`}>
-                    {userData.name.split(' ').map(n => n[0]).join('')}
+                  <div className={`h-10 w-10 overflow-hidden rounded-full ring-2 ${isCurrentUser ? 'ring-primary-400' : 'ring-transparent'}`}>
+                    <img src={getAvatarUrl(userData.name)} alt="" className="h-full w-full object-cover" loading="lazy" />
                   </div>
                   <div className="flex-1">
                     <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{userData.name}</p>

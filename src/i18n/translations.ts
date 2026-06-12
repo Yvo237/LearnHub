@@ -60,6 +60,14 @@ export const translations = {
     fr: 'Enregistrer',
     en: 'Save',
   },
+  'common.saving': {
+    fr: 'Enregistrement...',
+    en: 'Saving...',
+  },
+  'common.all': {
+    fr: 'Tous',
+    en: 'All',
+  },
   'common.cancel': {
     fr: 'Annuler',
     en: 'Cancel',
@@ -75,6 +83,14 @@ export const translations = {
   'common.success': {
     fr: 'Succes',
     en: 'Success',
+  },
+  'common.notifications': {
+    fr: 'Notifications',
+    en: 'Notifications',
+  },
+  'common.noNotifications': {
+    fr: 'Aucune notification',
+    en: 'No notifications',
   },
   'common.free': {
     fr: 'Gratuit',
@@ -199,8 +215,44 @@ export const translations = {
     en: 'Course Catalog',
   },
   'catalog.subtitle': {
-    fr: 'Explorez notre collection de {count} cours de qualite professionnelle.',
-    en: 'Explore our collection of {count} professional quality courses.',
+    fr: 'Explorez notre collection de cours de qualite professionnelle.',
+    en: 'Explore our collection of professional quality courses.',
+  },
+  'catalog.search': {
+    fr: 'Rechercher un cours...',
+    en: 'Search for a course...',
+  },
+  'catalog.enroll': {
+    fr: "S'inscrire",
+    en: 'Enroll',
+  },
+  'catalog.courses': {
+    fr: 'cours',
+    en: 'courses',
+  },
+  'catalog.allCategories': {
+    fr: 'Toutes les categories',
+    en: 'All Categories',
+  },
+  'catalog.categories': {
+    fr: 'categories',
+    en: 'categories',
+  },
+  'catalog.noResults': {
+    fr: 'Aucun resultat',
+    en: 'No results',
+  },
+  'catalog.noResultsDesc': {
+    fr: 'Essayez de modifier votre recherche.',
+    en: 'Try changing your search.',
+  },
+  'catalog.free': {
+    fr: 'Gratuit',
+    en: 'Free',
+  },
+  'catalog.browseCourses': {
+    fr: 'Parcourir les cours',
+    en: 'Browse Courses',
   },
   'catalog.filters': {
     fr: 'Filtres',
@@ -311,6 +363,14 @@ export const translations = {
   'myCourses.exploreCatalog': {
     fr: 'Explorer le catalogue',
     en: 'Explore Catalog',
+  },
+  'myCourses.empty': {
+    fr: 'Aucun cours inscrit',
+    en: 'No enrolled courses',
+  },
+  'myCourses.emptyDesc': {
+    fr: 'Inscrivez-vous a un cours pour commencer.',
+    en: 'Enroll in a course to get started.',
   },
 
   // Course Detail
@@ -466,6 +526,14 @@ export const translations = {
     fr: 'Vous avez besoin de {score}% pour reussir. Reessayez !',
     en: 'You need {score}% to pass. Try again!',
   },
+  'quiz.yourAnswer': {
+    fr: 'Votre reponse',
+    en: 'Your answer',
+  },
+  'quiz.correctAnswer': {
+    fr: 'Bonne reponse',
+    en: 'Correct answer',
+  },
   'quiz.restart': {
     fr: 'Recommencer',
     en: 'Restart',
@@ -619,6 +687,10 @@ export const translations = {
   'forum.beFirst': {
     fr: 'Soyez le premier a lancer une discussion !',
     en: 'Be the first to start a discussion!',
+  },
+  'forum.unanswered': {
+    fr: 'Sans reponse',
+    en: 'Unanswered',
   },
 
   // Leaderboard
@@ -834,6 +906,30 @@ export const translations = {
     fr: 'Enregistre !',
     en: 'Saved!',
   },
+  'settings.appearance': {
+    fr: 'Apparence',
+    en: 'Appearance',
+  },
+  'settings.appearanceDesc': {
+    fr: 'Personnalisez l\'apparence de l\'application.',
+    en: 'Customize the app appearance.',
+  },
+  'settings.notifDesc': {
+    fr: 'Gerer vos preferences de notification.',
+    en: 'Manage your notification preferences.',
+  },
+  'settings.langDesc': {
+    fr: 'Choisissez votre langue preferee.',
+    en: 'Choose your preferred language.',
+  },
+  'settings.privacy': {
+    fr: 'Confidentialite',
+    en: 'Privacy',
+  },
+  'settings.privacyDesc': {
+    fr: 'Gerer vos parametres de confidentialite.',
+    en: 'Manage your privacy settings.',
+  },
 
   // Sidebar
   'sidebar.streakMessage': {
@@ -930,6 +1026,92 @@ export const translations = {
   'auth.hasAccount': {
     fr: 'Deja un compte ?',
     en: 'Already have an account?',
+  },
+
+  // Admin
+  'nav.admin': {
+    fr: 'Administration',
+    en: 'Admin',
+  },
+  'admin.title': {
+    fr: 'Administration',
+    en: 'Administration',
+  },
+  'admin.subtitle': {
+    fr: 'Gerer votre plateforme d\'apprentissage',
+    en: 'Manage your learning platform',
+  },
+  'admin.overview': {
+    fr: 'Apercu',
+    en: 'Overview',
+  },
+  'admin.courses': {
+    fr: 'Cours',
+    en: 'Courses',
+  },
+  'admin.users': {
+    fr: 'Utilisateurs',
+    en: 'Users',
+  },
+  'admin.categories': {
+    fr: 'Categories',
+    en: 'Categories',
+  },
+  'admin.totalCourses': {
+    fr: 'Cours total',
+    en: 'Total Courses',
+  },
+  'admin.totalUsers': {
+    fr: 'Utilisateurs',
+    en: 'Total Users',
+  },
+  'admin.totalEnrollments': {
+    fr: 'Inscriptions',
+    en: 'Enrollments',
+  },
+  'admin.addCourse': {
+    fr: 'Ajouter un cours',
+    en: 'Add Course',
+  },
+  'admin.editCourse': {
+    fr: 'Modifier le cours',
+    en: 'Edit Course',
+  },
+  'admin.deleteCourse': {
+    fr: 'Supprimer',
+    en: 'Delete',
+  },
+  'admin.confirmDelete': {
+    fr: 'Confirmer la suppression ?',
+    en: 'Confirm deletion?',
+  },
+  'admin.published': {
+    fr: 'Publie',
+    en: 'Published',
+  },
+  'admin.draft': {
+    fr: 'Brouillon',
+    en: 'Draft',
+  },
+  'admin.role': {
+    fr: 'Role',
+    en: 'Role',
+  },
+  'admin.changeRole': {
+    fr: 'Changer le role',
+    en: 'Change role',
+  },
+  'admin.save': {
+    fr: 'Enregistrer',
+    en: 'Save',
+  },
+  'admin.cancel': {
+    fr: 'Annuler',
+    en: 'Cancel',
+  },
+  'admin.noUsers': {
+    fr: 'Aucun utilisateur',
+    en: 'No users',
   },
 } as const;
 

@@ -8,6 +8,7 @@ interface AuthUser {
   id: string;
   email: string;
   fullName: string;
+  role: 'student' | 'instructor' | 'admin';
 }
 
 interface AppContextType {
@@ -65,23 +66,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          fullName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Utilisateur',
-        });
-      }
-      setIsLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ? {
+    async function loadUser(session: any): Promise<AuthUser | null> {
+      if (!session?.user) return null;
+      let role: 'student' | 'instructor' | 'admin' = 'student';
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+      if (profile?.role === 'admin' || profile?.role === 'instructor') role = profile.role;
+      return {
         id: session.user.id,
         email: session.user.email || '',
         fullName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Utilisateur',
-      } : null);
+        role,
+      };
+    }
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setUser(await loadUser(session));
+      setIsLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setUser(await loadUser(session));
       setIsLoading(false);
     });
 

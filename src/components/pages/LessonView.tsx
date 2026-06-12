@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Play, Pause, CheckCircle2, BookOpen, ChevronDown
 import { courseService } from '../../lib/supabase';
 import { useAppStore } from '../../store/useStore';
 import { useApp } from '../../contexts/AppContext';
+import { getLessonImage } from '../../utils/images';
 import type { Page, Course } from '../../types';
 
 interface LessonViewProps {
@@ -72,7 +73,7 @@ export default function LessonView({ courseId, lessonId, onNavigate }: LessonVie
         <div className={`relative ${isDark ? 'bg-slate-950' : 'bg-slate-900'}`}>
           {currentLesson.type === 'video' ? (
             <div className="relative flex aspect-video max-h-[60vh] items-center justify-center">
-              <img src="/images/hero-learning.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
+              <img src={getLessonImage(currentLesson.id)} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
               <div className="relative z-10 flex flex-col items-center">
                 <button onClick={() => setIsPlaying(!isPlaying)}
                   className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-all hover:bg-white/30 hover:scale-110">
@@ -97,8 +98,9 @@ export default function LessonView({ courseId, lessonId, onNavigate }: LessonVie
               </div>
             </div>
           ) : currentLesson.type === 'article' ? (
-            <div className={`p-8 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
-              <div className="mx-auto max-w-3xl">
+            <div className={`relative p-8 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              <img src={getLessonImage(currentLesson.id)} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20" loading="lazy" />
+              <div className="relative mx-auto max-w-3xl">
                 <span className={`inline-flex items-center gap-1 rounded-lg px-3 py-1 text-xs font-medium ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                   <FileText className="h-3 w-3" /> Article
                 </span>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Award, Download, Share2, Calendar } from 'lucide-react';
 import { certificateService } from '../../lib/supabase';
 import { useApp } from '../../contexts/AppContext';
+import { getCourseImage } from '../../utils/images';
 import type { Certificate } from '../../types';
 
 export default function Certificates() {
@@ -18,8 +19,6 @@ export default function Certificates() {
       setLoading(false);
     });
   }, [user]);
-
-  const certColors = ['from-amber-400 to-orange-500', 'from-blue-500 to-indigo-600', 'from-emerald-500 to-teal-600', 'from-purple-500 to-pink-600'];
 
   return (
     <div className={`p-4 md:p-6 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
@@ -56,8 +55,9 @@ export default function Certificates() {
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {certificates.map((cert, idx) => (
               <div key={cert.id} className={`group overflow-hidden rounded-2xl border shadow-sm transition-all hover:shadow-lg ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
-                <div className={`relative bg-gradient-to-br ${certColors[idx % certColors.length]} p-6 text-white`}>
-                  <div className="absolute inset-0 bg-black/10" />
+                <div className={`relative p-6 text-white`}>
+                  <img src={getCourseImage({ id: cert.courseId })} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60" />
                   <div className="relative text-center">
                     <Award className="mx-auto h-12 w-12" />
                     <h3 className="mt-2 text-sm font-bold">{t('certificates.completionCertificate')}</h3>

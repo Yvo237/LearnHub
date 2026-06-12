@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MessageSquare, Search, Plus, Heart, MessageCircle, Clock } from 'lucide-react';
 import { courseService, forumService } from '../../lib/supabase';
 import { useApp } from '../../contexts/AppContext';
+import { getAvatarUrl } from '../../utils/images';
 import type { ForumPost, Course } from '../../types';
 
 export default function Forum() {
@@ -62,7 +63,7 @@ export default function Forum() {
               {[
                 { id: 'all', label: 'forum.recent' },
                 { id: 'popular', label: 'forum.popular' },
-                { id: 'unanswered', label: 'forum.noDiscussions' },
+                { id: 'unanswered', label: 'forum.unanswered' },
               ].map(f => (
                 <button key={f.id} onClick={() => setFilter(f.id)}
                   className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${filter === f.id ? 'bg-primary-600 text-white' : isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>{t(f.label)}</button>
@@ -82,8 +83,8 @@ export default function Forum() {
                 <div key={post.id} className={`overflow-hidden rounded-2xl border transition-all hover:shadow-md ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
                   <div className="p-4 md:p-5">
                     <div className="flex items-start gap-4">
-                      <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-sm font-bold text-white">
-                        {post.author.split(' ').map((n: string) => n[0]).join('')}
+                      <div className="mt-1 h-10 w-10 flex-shrink-0 overflow-hidden rounded-full">
+                        <img src={getAvatarUrl(post.author)} alt="" className="h-full w-full object-cover" loading="lazy" />
                       </div>
                       <div className="flex-1">
                         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
